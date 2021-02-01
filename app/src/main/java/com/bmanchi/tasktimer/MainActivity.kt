@@ -1,5 +1,6 @@
 package com.bmanchi.tasktimer
 
+import android.content.ContentValues
 import android.os.Bundle
 import android.util.Log
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -17,23 +18,30 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
 
+        testInsert("prueba 1", "probando agregar", 1)
+        testInsert("prueba 2", "probando agregar", 2)
+        testInsert("prueba 3", "probando agregar", 1)
+
+        testUpdate()
+
 //        val appDatabase = AppDatabase.getInstance(this)
 //        val db = appDatabase.readableDatabase
 
         val projection = arrayOf(TasksContract.Columns.TASK_NAME, TasksContract.Columns.TASK_SORT_ORDER)
         val sortColumn = TasksContract.Columns.TASK_SORT_ORDER
+
         // Replace db with contentResolver
-        val cursor = contentResolver.query(TasksContract.CONTENT_URI, projection, null, null, sortColumn)
+        val cursor = contentResolver.query(TasksContract.CONTENT_URI, null, null, null, sortColumn)
         Log.d(TAG, "*****************")
         cursor?.use {
             while (it.moveToNext()) {
                 // Cycle through all records
                 with (cursor) {
-//                    val id = this.getLong(0)
-                    val name = getString(0)
-//                    val description = getString(2)
-                    val sortOrder = getString( 1)
-                    val result ="Name: $name, sort order: $sortOrder"
+                    val id = this.getLong(0)
+                    val name = getString(1)
+                    val description = getString(2)
+                    val sortOrder = getString( 3)
+                    val result ="ID: $id, Name: $name, description: $description, sort order: $sortOrder"
                     Log.d(TAG, "onCreate: reading data $result")
                 }
             }
@@ -60,5 +68,28 @@ class MainActivity : AppCompatActivity() {
             R.id.action_settings -> true
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun testInsert(name: String, description: String, sortOrder: Int) {
+        val values = ContentValues().apply {
+            put(TasksContract.Columns.TASK_NAME, "$name")
+            put(TasksContract.Columns.TASK_DESCRIPTION, "$description")
+            put(TasksContract.Columns.TASK_SORT_ORDER, sortOrder)
+        }
+
+        val uri = contentResolver.insert(TasksContract.CONTENT_URI, values)
+        Log.d(TAG, "New row id (in uri) is $uri")
+        Log.d(TAG, "id (in uri) is ${TasksContract.getId(uri!!)}")
+    }
+
+    private fun testUpdate() {
+        val values = ContentValues().apply {
+            put(TasksContract.Columns.TASK_NAME, "Content Provider")
+            put(TasksContract.Columns.TASK_DESCRIPTION, "Record content providers videos")
+        }
+
+        val taskUri = TasksContract.buildUriFormId(3)
+        val rowsAffected = contentResolver.update(taskUri, values, null, null)
+        Log.d(TAG, "Number of rows affected is $rowsAffected")
     }
 }

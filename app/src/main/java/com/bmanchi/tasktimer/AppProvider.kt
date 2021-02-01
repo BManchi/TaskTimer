@@ -18,7 +18,7 @@ import android.util.Log
  */
 
 private const val TAG = "AppProvider"
-const val CONTENT_AUTHORITY = "bmanchi.tasktimer.provider"
+const val CONTENT_AUTHORITY = "com.bmanchi.tasktimer.provider"
 
 private const val TASKS = 100
 private const val TASKS_ID = 101
