@@ -4,6 +4,7 @@ import android.content.ContentProvider
 import android.content.ContentValues
 import android.content.UriMatcher
 import android.database.Cursor
+import android.database.SQLException
 import android.database.sqlite.SQLiteQueryBuilder
 import android.net.Uri
 import android.os.Parcel
@@ -17,7 +18,7 @@ import android.util.Log
  */
 
 private const val TAG = "AppProvider"
-private const val CONTENT_AUTHORITY = "bmanchi.tasktimer.provider"
+const val CONTENT_AUTHORITY = "bmanchi.tasktimer.provider"
 
 private const val TASKS = 100
 private const val TASKS_ID = 101
@@ -44,9 +45,9 @@ class AppProvider() : ContentProvider(), Parcelable {
         //e.g. content://bmanchi.tasktimer.provider/Tasks/8
         matcher.addURI(CONTENT_AUTHORITY, "${TasksContract.TABLE_NAME}/#", TASKS_ID)
 
-//        matcher.addURI(CONTENT_AUTHORITY, TimingsContract.TABLE_NAME, TIMINGS)
-//        matcher.addURI(CONTENT_AUTHORITY, "${TimingsContract.TABLE_NAME}/#", TIMINGS_ID)
-//
+        matcher.addURI(CONTENT_AUTHORITY, TimingsContract.TABLE_NAME, TIMINGS)
+        matcher.addURI(CONTENT_AUTHORITY, "${TimingsContract.TABLE_NAME}/#", TIMINGS_ID)
+
 //        matcher.addURI(CONTENT_AUTHORITY, DurationsContract.TABLE_NAME, TASK_DURATIONS)
 //        matcher.addURI(CONTENT_AUTHORITY, "${DurationsContract.TABLE_NAME}/#", TASK_DURATIONS_ID)
 
@@ -185,120 +186,193 @@ class AppProvider() : ContentProvider(), Parcelable {
             TASKS_ID -> {
                 queryBuilder.tables = TasksContract.TABLE_NAME
                 val taskId = TasksContract.getId(uri)
-                queryBuilder.appendWhereEscapeString("${TasksContract.Columns.ID} = $taskId")       // <-- change method
+                queryBuilder.appendWhere("${TasksContract.Columns.ID} = ")
+                queryBuilder.appendWhereEscapeString("$taskId")
             }
 
-//            TIMINGS -> queryBuilder.tables = TimingsContract.TABLE_NAME
-//
-//            TIMINGS_ID -> {
-//                queryBuilder.tables = TimingsContract.TABLE_NAME
-//                val timingId = TimingsContract.getId(uri)
-//                queryBuilder.appendWhereEscapeString("${TimingsContract.Columns.ID} = $timingId")   // <-- and here
-//            }
-//
+            TIMINGS -> queryBuilder.tables = TimingsContract.TABLE_NAME
+
+            TIMINGS_ID -> {
+                queryBuilder.tables = TimingsContract.TABLE_NAME
+                val timingId = TimingsContract.getId(uri)
+                queryBuilder.appendWhere("${TimingsContract.Columns.ID} = ")
+                queryBuilder.appendWhereEscapeString("$timingId")
+            }
+
 //            TASK_DURATIONS -> queryBuilder.tables = DurationsContract.TABLE_NAME
 //
 //            TASK_DURATIONS_ID -> {
 //                queryBuilder.tables = DurationsContract.TABLE_NAME
 //                val durationId = DurationsContract.getId(uri)
-//                queryBuilder.appendWhereEscapeString("${DurationsContract.Columns.ID} = $durationId")   // <-- and here
+//                queryBuilder.appendWhere("${DurationsContract.Columns.ID} = ")   // <-- and here
+//                queryBuilder.appendWhereEscapeString("$durationId")
 //            }
 
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
 
-        val db = AppDatabase.getInstance(context).readableDatabase
+        val db = AppDatabase.getInstance(context!!).readableDatabase
         val cursor = queryBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder)
         Log.d(TAG, "query: rows in returned cursor = ${cursor.count}") // TODO remove this line
 
         return cursor
     }
 
-    /**
-     * Implement this to handle requests for the MIME type of the data at the
-     * given URI.  The returned MIME type should start with
-     * `vnd.android.cursor.item` for a single record,
-     * or `vnd.android.cursor.dir/` for multiple items.
-     * This method can be called from multiple threads, as described in
-     * [Processes
- * and Threads]({@docRoot}guide/topics/fundamentals/processes-and-threads.html#Threads).
-     *
-     *
-     * Note that there are no permissions needed for an application to
-     * access this information; if your content provider requires read and/or
-     * write permissions, or is not exported, all applications can still call
-     * this method regardless of their access permissions.  This allows them
-     * to retrieve the MIME type for a URI when dispatching intents.
-     *
-     * @param uri the URI to query.
-     * @return a MIME type string, or `null` if there is no type.
-     */
     override fun getType(uri: Uri): String? {
-        TODO("Not yet implemented")
+
+        val match = uriMatcher.match(uri)
+
+        return when (match) {
+            TASKS -> TasksContract.CONTENT_TYPE
+
+            TASKS_ID -> TasksContract.CONTENT_ITEM_TYPE
+
+            TIMINGS -> TimingsContract.CONTENT_TYPE
+
+            TIMINGS_ID -> TimingsContract.CONTENT_ITEM_TYPE
+
+//            TASK_DURATIONS -> DurationsContract.CONTENT_TYPE
+//
+//            TASK_DURATIONS_ID -> DurationsContract.CONTENT_ITEM_TYPE
+
+            else -> throw IllegalArgumentException("unknown Uri: $uri")
+        }
     }
 
-    /**
-     * Implement this to handle requests to insert a new row. As a courtesy,
-     * call
-     * [ notifyChange()][ContentResolver.notifyChange] after inserting. This method can be called from multiple
-     * threads, as described in [Processes
- * and Threads](
-      {@docRoot}guide/topics/fundamentals/processes-and-threads.html#Threads).
-     *
-     * @param uri The content:// URI of the insertion request.
-     * @param values A set of column_name/value pairs to add to the database.
-     * @return The URI for the newly inserted item.
-     */
     override fun insert(uri: Uri, values: ContentValues?): Uri? {
-        // fix nullable Context error
-//        val context = requireContext(this)
+        Log.d(TAG, "insert: called with uri $uri")
+        val match = uriMatcher.match(uri)
+        Log.d(TAG, "insert: match is $match")
 
-        TODO("Not yet implemented")
+        val recordId: Long
+        val returnUri: Uri
+
+        when(match) {
+            TASKS -> {
+                val db = AppDatabase.getInstance(context!!).writableDatabase
+                recordId = db.insert(TasksContract.TABLE_NAME, null, values)
+                if (recordId != -1L) {
+                    returnUri = TasksContract.buildUriFormId(recordId)
+                } else {
+                    throw SQLException("Failed to insert, Uri was $uri")
+                }
+            }
+            TIMINGS -> {
+                val db = AppDatabase.getInstance(context!!).writableDatabase
+                recordId = db.insert(TasksContract.TABLE_NAME, null, values)
+                if (recordId != -1L) {
+                    returnUri = TimingsContract.buildUriFormId(recordId)
+                } else {
+                    throw SQLException("Failed to insert, Uri was $uri")
+                }
+            }
+
+            else -> throw IllegalArgumentException("Unknown uri: $uri")
+        }
+
+        Log.d(TAG, "Exiting insert, returning $returnUri")
+        return returnUri
     }
 
-    /**
-     * Implement this to handle requests to delete one or more rows. The
-     * implementation should apply the selection clause when performing
-     * deletion, allowing the operation to affect multiple rows in a directory.
-     * As a courtesy, call
-     * [ notifyChange()][ContentResolver.notifyChange] after deleting. This method can be called from multiple
-     * threads, as described in [Processes
- * and Threads](
-      {@docRoot}guide/topics/fundamentals/processes-and-threads.html#Threads).
-     *
-     *
-     * The implementation is responsible for parsing out a row ID at the end of
-     * the URI, if a specific row is being deleted. That is, the client would
-     * pass in `content://contacts/people/22` and the implementation
-     * is responsible for parsing the record number (22) when creating a SQL
-     * statement.
-     *
-     * @param uri The full URI to query, including a row ID (if a specific
-     * record is requested).
-     * @param selection An optional restriction to apply to rows when deleting.
-     * @return The number of rows affected.
-     * @throws SQLException
-     */
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int {
-        TODO("Not yet implemented")
+        Log.d(TAG, "delete: called with uri $uri")
+        val match = uriMatcher.match(uri)
+        Log.d(TAG, "delete: match is $match")
+
+        val count: Int
+        var selectionCriteria: String
+
+        when (match) {
+
+            TASKS -> {
+                val db = AppDatabase.getInstance(context!!).writableDatabase
+                count = db.delete(TasksContract.TABLE_NAME, selection, selectionArgs)
+            }
+
+            TASKS_ID -> {
+                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val id = TasksContract.getId(uri)
+                selectionCriteria = "${TasksContract.Columns.ID} = $id"
+
+                if (selection != null && selection.isNotEmpty()) {
+                    selectionCriteria += " AND ($selection)"
+                }
+
+                count = db.delete(TasksContract.TABLE_NAME, selectionCriteria, selectionArgs)
+            }
+
+            TIMINGS -> {
+                val db = AppDatabase.getInstance(context!!).writableDatabase
+                count = db.delete(TimingsContract.TABLE_NAME, selection, selectionArgs)
+            }
+
+            TIMINGS_ID -> {
+                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val id = TimingsContract.getId(uri)
+                selectionCriteria = "${TimingsContract.Columns.ID} = $id"
+
+                if (selection != null && selection.isNotEmpty()) {
+                    selectionCriteria += " AND ($selection)"
+                }
+
+                count = db.delete(TimingsContract.TABLE_NAME, selectionCriteria, selectionArgs)
+            }
+
+            else -> throw IllegalArgumentException("Unknown uri: $uri")
+        }
+
+        Log.d(TAG, "Exiting update, returning $count")
+        return count
     }
 
-    /**
-     * Implement this to handle requests to update one or more rows. The
-     * implementation should update all rows matching the selection to set the
-     * columns according to the provided values map. As a courtesy, call
-     * [ notifyChange()][ContentResolver.notifyChange] after updating. This method can be called from multiple
-     * threads, as described in [Processes
- * and Threads](
-      {@docRoot}guide/topics/fundamentals/processes-and-threads.html#Threads).
-     *
-     * @param uri The URI to query. This can potentially have a record ID if
-     * this is an update request for a specific record.
-     * @param values A set of column_name/value pairs to update in the database.
-     * @param selection An optional filter to match rows to update.
-     * @return the number of rows affected.
-     */
     override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int {
-        TODO("Not yet implemented")
+        Log.d(TAG, "update: called with uri $uri")
+        val match = uriMatcher.match(uri)
+        Log.d(TAG, "update: match is $match")
+
+        val count: Int
+        var selectionCriteria: String
+
+        when (match) {
+
+            TASKS -> {
+                val db = AppDatabase.getInstance(context!!).writableDatabase
+                count = db.update(TasksContract.TABLE_NAME, values, selection, selectionArgs)
+            }
+
+            TASKS_ID -> {
+                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val id = TasksContract.getId(uri)
+                selectionCriteria = "${TasksContract.Columns.ID} = $id"
+
+                if (selection != null && selection.isNotEmpty()) {
+                    selectionCriteria += " AND ($selection)"
+                }
+
+                count = db.update(TasksContract.TABLE_NAME, values, selectionCriteria, selectionArgs)
+            }
+
+            TIMINGS -> {
+                val db = AppDatabase.getInstance(context!!).writableDatabase
+                count = db.update(TimingsContract.TABLE_NAME, values, selection, selectionArgs)
+            }
+
+            TIMINGS_ID -> {
+                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val id = TimingsContract.getId(uri)
+                selectionCriteria = "${TimingsContract.Columns.ID} = $id"
+
+                if (selection != null && selection.isNotEmpty()) {
+                    selectionCriteria += " AND ($selection)"
+                }
+
+                count = db.update(TimingsContract.TABLE_NAME, values, selectionCriteria, selectionArgs)
+            }
+
+            else -> throw IllegalArgumentException("Unknown uri: $uri")
+        }
+
+        Log.d(TAG, "Exiting update, returning $count")
+        return count
     }
 }
