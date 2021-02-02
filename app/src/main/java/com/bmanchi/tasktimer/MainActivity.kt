@@ -22,7 +22,13 @@ class MainActivity : AppCompatActivity() {
         testInsert("prueba 2", "probando agregar", 2)
         testInsert("prueba 3", "probando agregar", 1)
 
-        testUpdate()
+//        testUpdate()
+
+//        testUpdate2()
+
+//        testDelete()
+
+        testDelete2()
 
 //        val appDatabase = AppDatabase.getInstance(this)
 //        val db = appDatabase.readableDatabase
@@ -65,7 +71,7 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.menumain_settings -> true
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -80,6 +86,39 @@ class MainActivity : AppCompatActivity() {
         val uri = contentResolver.insert(TasksContract.CONTENT_URI, values)
         Log.d(TAG, "New row id (in uri) is $uri")
         Log.d(TAG, "id (in uri) is ${TasksContract.getId(uri!!)}")
+    }
+
+    private fun testDelete() {
+
+        val taskUri = TasksContract.buildUriFormId(3)
+        val rowsAffected = contentResolver.delete(taskUri, null, null)
+        Log.d(TAG, "Number of rows deleted is $rowsAffected")
+    }
+
+    private fun testDelete2() {
+
+        val selection = TasksContract.Columns.TASK_DESCRIPTION + " = ?"
+        val selectionArgs = arrayOf("For deletion")
+        val rowsAffected = contentResolver.delete(TasksContract.CONTENT_URI,
+                selection,
+                selectionArgs)
+        Log.d(TAG, "Number of rows affected is $rowsAffected")
+    }
+
+    private fun testUpdate2() {
+        val values = ContentValues().apply {
+            put(TasksContract.Columns.TASK_SORT_ORDER, 999)
+            put(TasksContract.Columns.TASK_DESCRIPTION, "For deletion")
+        }
+
+        val selection = TasksContract.Columns.TASK_SORT_ORDER + " = ?"
+        val selectionArgs = arrayOf("99")
+//        val taskUri = TasksContract.buildUriFormId(3)
+        val rowsAffected = contentResolver.update(TasksContract.CONTENT_URI,
+                values,
+                selection,
+                selectionArgs)
+        Log.d(TAG, "Number of rows affected is $rowsAffected")
     }
 
     private fun testUpdate() {

@@ -5,8 +5,20 @@
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>
     <string name="next">Next</string>
-    <string name="previous">Previous</string>
+    <string name="addedit_save">Save</string>
 
     <string name="hello_first_fragment">Hello first fragment</string>
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="menutitle_addTask">Add Task</string>
+    <string name="menutitle_showDurations">Durations Report</string>
+    <string name="manumain_showAbaut">About TaskTimer</string>
+    <string name="menumain_generate">Generate data</string>
+    <string name="no_task_message">No Task Selected</string>
+    <string name="edit_button_description">Button to edit a tasks detail</string>
+    <string name="delete_button_description">Button to delete a task</string>
+    <string name="sortorder_hint">Sort order</string>
+    <string name="description_hint">Type a description for the New Task (max 256 characters)</string>
+    <string name="name_hint">New Task Name</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
