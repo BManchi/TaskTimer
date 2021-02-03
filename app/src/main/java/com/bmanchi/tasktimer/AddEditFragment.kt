@@ -10,6 +10,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.fragment_add_edit.*
 
 private const val TAG ="AddEditFragment"
@@ -25,6 +27,7 @@ class AddEditFragment : Fragment() {
 
     private var task: Task? = null
     private var listener: OnSaveClicked? = null
+    private val viewModel by lazy { ViewModelProviders.of(requireActivity()).get(TaskTimerViewModel::class.java) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate: starts")
@@ -57,8 +60,21 @@ class AddEditFragment : Fragment() {
             }
         }
     }
+    
+    private fun taskFromUi(): Task {
+        val sortOrder = if (addedit_sortorder.text.isNotEmpty()) {
+            Integer.parseInt(addedit_sortorder.text.toString())
+        } else {
+            0
+        }
+        val newTask = Task(addedit_name.text.toString(), addedit_description.text.toString(), sortOrder)
+        newTask.id = task?.id ?:0
 
-    private fun saveTask() {
+        return newTask
+    }
+
+
+    /*private fun saveTask() {
         // Update the database is at least one field has changed.
         // - There's no need to hit the database unless this has happened.
         val sortOrder = if (addedit_sortorder.text.isNotEmpty()){
@@ -97,8 +113,18 @@ class AddEditFragment : Fragment() {
                 activity?.contentResolver?.insert(TasksContract.CONTENT_URI, values)
             }
         }
-    }
+    }*/
 
+
+    private fun saveTask() { //new save task with MVVM
+        val newTask = taskFromUi()
+        if (newTask != (task)) {
+            Log.d(TAG, "saveTask: saving task, id is ${newTask.id}")
+            task = viewModel.saveTask(newTask)
+            Log.d(TAG, "saveTask: id is ${task?.id}")
+        }
+
+    }
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         Log.d(TAG, "onActivityCreated: starts")
         super.onActivityCreated(savedInstanceState)

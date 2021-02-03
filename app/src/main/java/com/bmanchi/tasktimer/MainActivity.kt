@@ -12,7 +12,7 @@ import kotlinx.android.synthetic.main.content_main.*
 
 private const val TAG = "MainActivity"
 
-class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked {
+class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked, MainActivityFragment.OnTaskEdit {
 
     // Whether or the activity is in two pane mode
     private var mTwoPane = false
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked {
 
     override fun onSaveClicked() {
         Log.d(TAG, "onSaveClicked: called")
-        var fragment = supportFragmentManager.findFragmentById(R.id.task_details_container)
+        val fragment = supportFragmentManager.findFragmentById(R.id.task_details_container)
         removeEditePane(fragment)
     }
 
@@ -153,6 +153,10 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked {
         } else {
             removeEditePane(fragment)
         }
+    }
+
+    override fun onTaskEdit(task: Task) {
+        taskEditRequest(task)
     }
 
     //    private fun testInsert(name: String, description: String, sortOrder: Int) {

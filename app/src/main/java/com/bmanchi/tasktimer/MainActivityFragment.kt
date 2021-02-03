@@ -1,5 +1,6 @@
 package com.bmanchi.tasktimer
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -19,10 +20,24 @@ private const val TAG = "MainActivityFragment"
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
-class MainActivityFragment : Fragment() {
+class MainActivityFragment : Fragment(),
+CursorRecyclerViewAdapter.OnTaskClickListener{
 
-    private val viewModel by lazy { ViewModelProvider(this).get(TaskTimerViewModel::class.java) }
-    private val mAdapter = CursorRecyclerViewAdapter(null)
+    private val viewModel by lazy { ViewModelProvider(requireActivity()).get(TaskTimerViewModel::class.java) }
+    private val mAdapter = CursorRecyclerViewAdapter(null, this)
+
+    /**
+     * Called when a fragment is first attached to its context.
+     * [.onCreate] will be called after this.
+     */
+    override fun onAttach(context: Context) {
+        Log.d(TAG, "onAttach: called")
+        super.onAttach(context)
+
+        if (context !is OnTaskEdit) {
+            throw RuntimeException("${context.toString()} must implement OnTaskEdit")
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate: called")
@@ -31,7 +46,7 @@ class MainActivityFragment : Fragment() {
     }
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
+             inflater: LayoutInflater, container: ViewGroup?,
             savedInstanceState: Bundle?
     ): View? {
         Log.d(TAG, "onCreateView: called")
@@ -50,4 +65,19 @@ class MainActivityFragment : Fragment() {
         task_list.adapter = mAdapter
     }
 
+    override fun onEditClick(task: Task) {
+        (activity as OnTaskEdit?)?.onTaskEdit(task)
+    }
+
+    override fun onDeleteClick(task: Task) {
+        viewModel.deleteTask(task.id)
+    }
+
+    override fun onTaskLongClick(task: Task) {
+        TODO("Not yet implemented")
+    }
+
+    interface OnTaskEdit {
+        fun onTaskEdit(task: Task)
+    }
 }

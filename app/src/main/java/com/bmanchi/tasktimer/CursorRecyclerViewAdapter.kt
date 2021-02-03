@@ -14,13 +14,39 @@ class TaskViewHolder(override val containerView: View) :
         RecyclerView.ViewHolder(containerView),
         LayoutContainer {
 //    var name: TextView = containerView.findViewById(R.id.tli_name)
+    fun bind(task: Task, listener: CursorRecyclerViewAdapter.OnTaskClickListener) {
+    tli_name.text = task.name
+    tli_description.text = task.description
+    tli_edit.visibility = View.VISIBLE
+    tli_delete.visibility = View.VISIBLE
+
+    tli_edit.setOnClickListener {
+        Log.d(TAG, "edit button tapped. task name is ${task.name}")
+        listener.onEditClick(task)
+    }
+    tli_delete.setOnClickListener {
+        Log.d(TAG, "delete button tapped. task name is ${task.name}")
+        listener.onDeleteClick(task)
+    }
+
+    containerView.setOnLongClickListener {
+        Log.d(TAG, "onLongClick: task name is ${task.name}")
+        listener.onTaskLongClick(task)
+        true
+    }
+}
 }
 
 private const val TAG = "CursorRecyclerViewAdapt"
 
-class CursorRecyclerViewAdapter(private var cursor: Cursor?) :
+class CursorRecyclerViewAdapter(private var cursor: Cursor?, private val listener: OnTaskClickListener) :
         RecyclerView.Adapter<TaskViewHolder>(){
 
+    interface OnTaskClickListener {
+        fun onEditClick(task: Task)
+        fun onDeleteClick(task: Task)
+        fun onTaskLongClick(task: Task)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TaskViewHolder {
         Log.d(TAG, "onCreateViewHolder: new view requested")
@@ -53,11 +79,12 @@ class CursorRecyclerViewAdapter(private var cursor: Cursor?) :
 
             task.id = cursor.getLong(cursor.getColumnIndex(TasksContract.Columns.ID))
 
-            holder.tli_name.text = task.name
-            holder.tli_description.text = task.description
-            holder.tli_edit.visibility = View.VISIBLE       // TODO: add onClick
-            holder.tli_delete.visibility = View.VISIBLE     // TODO: add onClick
+//            holder.tli_name.text = task.name
+//            holder.tli_description.text = task.description
+//            holder.tli_edit.visibility = View.VISIBLE       // TODO: add onClick
+//            holder.tli_delete.visibility = View.VISIBLE     // TODO: add onClick
 
+            holder.bind(task, listener)
         }
     }
 
