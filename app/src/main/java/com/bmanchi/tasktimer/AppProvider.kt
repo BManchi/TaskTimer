@@ -252,16 +252,16 @@ class AppProvider() : ContentProvider(), Parcelable {
                 val db = AppDatabase.getInstance(context!!).writableDatabase
                 recordId = db.insert(TasksContract.TABLE_NAME, null, values)
                 if (recordId != -1L) {
-                    returnUri = TasksContract.buildUriFormId(recordId)
+                    returnUri = TasksContract.buildUriFromId(recordId)
                 } else {
                     throw SQLException("Failed to insert, Uri was $uri")
                 }
             }
             TIMINGS -> {
                 val db = AppDatabase.getInstance(context!!).writableDatabase
-                recordId = db.insert(TasksContract.TABLE_NAME, null, values)
+                recordId = db.insert(TimingsContract.TABLE_NAME, null, values)
                 if (recordId != -1L) {
-                    returnUri = TimingsContract.buildUriFormId(recordId)
+                    returnUri = TimingsContract.buildUriFromId(recordId)
                 } else {
                     throw SQLException("Failed to insert, Uri was $uri")
                 }
@@ -270,6 +270,11 @@ class AppProvider() : ContentProvider(), Parcelable {
             else -> throw IllegalArgumentException("Unknown uri: $uri")
         }
 
+        if (recordId > 0 ){
+            // something was inserted
+            Log.d(TAG, "insert: Setting notifyChange with $uri")
+            context?.contentResolver?.notifyChange(uri, null)
+        }
         Log.d(TAG, "Exiting insert, returning $returnUri")
         return returnUri
     }
@@ -321,6 +326,12 @@ class AppProvider() : ContentProvider(), Parcelable {
             else -> throw IllegalArgumentException("Unknown uri: $uri")
         }
 
+        if (count > 0 ){
+            // something was deleted
+            Log.d(TAG, "delete: Setting notifyChange with $uri")
+            context?.contentResolver?.notifyChange(uri, null)
+        }
+
         Log.d(TAG, "Exiting delete, returning $count")
         return count
     }
@@ -370,6 +381,12 @@ class AppProvider() : ContentProvider(), Parcelable {
             }
 
             else -> throw IllegalArgumentException("Unknown uri: $uri")
+        }
+
+        if (count > 0 ){
+            // something was updated
+            Log.d(TAG, "update: Setting notifyChange with $uri")
+            context?.contentResolver?.notifyChange(uri, null)
         }
 
         Log.d(TAG, "Exiting update, returning $count")

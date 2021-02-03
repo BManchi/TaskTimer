@@ -27,7 +27,7 @@ object TasksContract {
         return ContentUris.parseId(uri)
     }
 
-    fun buildUriFormId(id: Long): Uri {
+    fun buildUriFromId(id: Long): Uri {
         return ContentUris.withAppendedId(CONTENT_URI, id)
     }
 }
