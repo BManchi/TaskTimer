@@ -15,13 +15,18 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_main.*
+import java.lang.AssertionError
+
+const val DIALOG_ID_DELETE = 1
+const val DIALOG_TASK_ID = "task_id"
 
 private const val TAG = "MainActivityFragment"
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
 class MainActivityFragment : Fragment(),
-CursorRecyclerViewAdapter.OnTaskClickListener{
+CursorRecyclerViewAdapter.OnTaskClickListener,
+AppDialog.DialogEvents {
 
     private val viewModel by lazy { ViewModelProvider(requireActivity()).get(TaskTimerViewModel::class.java) }
     private val mAdapter = CursorRecyclerViewAdapter(null, this)
@@ -70,11 +75,37 @@ CursorRecyclerViewAdapter.OnTaskClickListener{
     }
 
     override fun onDeleteClick(task: Task) {
-        viewModel.deleteTask(task.id)
+        val args = Bundle().apply {
+            putInt(DIALOG_ID, DIALOG_ID_DELETE)
+            putString(DIALOG_MESSAGE, getString(R.string.deldiag_message, task.id, task.name))
+            putInt(DIALOG_POSITIVE_RID, R.string.deldiag_positive_caption)
+            putLong(DIALOG_TASK_ID, task.id)     // pass the id in the arguments, so we can retrieve it when we get called back.
+        }
+        val dialog = AppDialog()
+        dialog.arguments = args
+        dialog.show(childFragmentManager, null)
     }
 
     override fun onTaskLongClick(task: Task) {
         TODO("Not yet implemented")
+    }
+
+    override fun onPositiveDialogResult(dialogId: Int, args: Bundle) {
+        Log.d(TAG, "onPositiveDialogResult: called")
+
+        if (dialogId == DIALOG_ID_DELETE) {
+            val taskId = args.getLong(DIALOG_TASK_ID)
+            if (BuildConfig.DEBUG && taskId == 0L) throw AssertionError("task ID is zero")
+            viewModel.deleteTask(taskId)
+        }
+    }
+
+    override fun onNegativeDialogResult(dialogId: Int, args: Bundle) {
+        Log.d(TAG, "onNegativeDialogResult: called")
+    }
+
+    override fun onDialogCancelled(dialogId: Int) {
+        Log.d(TAG, "onDialogCancelled: called")
     }
 
     interface OnTaskEdit {

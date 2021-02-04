@@ -4,6 +4,7 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatDialogFragment
@@ -82,7 +83,7 @@ class AppDialog: AppCompatDialogFragment() {
                 dialogEvents?.onPositiveDialogResult(dialogId, arguments)
             }
             .setNegativeButton(negativeStringId) { dialogInterface, which ->
-                // callback negative result funcion, if you want to implement it.
+                // callback negative result function, if you want to implement it.
                 // dialogEvents?.onNegativeDialogResult(dialogId, arguments)
             }
             .create()
@@ -91,6 +92,17 @@ class AppDialog: AppCompatDialogFragment() {
     override fun onDetach() {
         Log.d(TAG, "onDetached called")
         super.onDetach()
+    }
+
+    override fun onCancel(dialog: DialogInterface) {
+        Log.d(TAG, "onCancel called")
+        val dialogId = requireArguments().getInt(DIALOG_ID)
+        dialogEvents?.onDialogCancelled(dialogId)
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        Log.d(TAG, "onDismiss called")
+        super.onDismiss(dialog)
     }
 
     internal interface DialogEvents {

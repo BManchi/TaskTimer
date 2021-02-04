@@ -115,10 +115,18 @@ class AddEditFragment : Fragment() {
         }
     }*/
 
+    fun isDirty(): Boolean {
+        val newTask = taskFromUi()
+        return ((newTask != task) &&
+                (newTask.name.isNotBlank()
+                        || newTask.description.isNotBlank()
+                        || newTask.sortOrder != 0)
+                )
+    }
 
     private fun saveTask() { //new save task with MVVM
         val newTask = taskFromUi()
-        if (newTask != (task)) {
+        if (newTask != task) {
             Log.d(TAG, "saveTask: saving task, id is ${newTask.id}")
             task = viewModel.saveTask(newTask)
             Log.d(TAG, "saveTask: id is ${task?.id}")

@@ -24,4 +24,13 @@
     <string name="instructions">Use the add button (+) in the toolbar above to create new tasks.\n\nTasks with lower sort orders will be placed higher up the list.Tasks with the same sort order will be sorted alphabetically.\n\nTapping a task will start the timer for that task (and will stop the timer for any previous task that was being timed).\n\nEach task has Edit and Delete buttons if you want to change the details or remove the task.</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="deldiag_positive_caption">Delete</string>
+    <string name="deldiag_message">Deleting will also delete all timing data associated with task id %1$d: %2$s.</string>
+    <string name="cancelEditDiag_positive_caption">Abandon changes</string>
+    <string name="cancelEditDiag_negative_caption">Continue editing</string>
+    <string name="cancelEditDiago_message">You have unsaved changes. Do you want to abandon your changes, or continue editing?</string>
+    <string name="about_copyright">Copyright © 2021 BManchi</string>
+    <string name="about_weblink">https://github.com/BManchi</string>
+    <string name="about_email">For support, email tasktimer@bmanchi.com</string>
+    <string name="about_credits">Icon derived from <b>analog clock</b> at openclipart.org <b>Anonymus</b></string>
 </resources>
