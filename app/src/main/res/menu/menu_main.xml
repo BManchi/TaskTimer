@@ -20,7 +20,7 @@
         android:title="@string/action_settings"
         app:showAsAction="never" />
     <item
-        android:id="@+id/manumain_showAbaut"
+        android:id="@+id/menumain_showAbaut"
         android:icon="@android:drawable/ic_menu_info_details"
         android:orderInCategory="40"
         android:title="@string/manumain_showAbaut"

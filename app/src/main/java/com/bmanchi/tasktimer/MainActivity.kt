@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
         when (item.itemId) {
             R.id.menumain_addTask -> taskEditRequest(null)
 //            R.id.menumain_settings -> true
-            R.id.manumain_showAbaut -> showAboutDialog()
+            R.id.menumain_showAbaut -> showAboutDialog()
             android.R.id.home -> {
                 Log.d(TAG, "onOptionsItemSelected: home button pressed")
                 val fragment = findFragmentById(R.id.task_details_container)
