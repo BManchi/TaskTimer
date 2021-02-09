@@ -13,7 +13,7 @@
     <string name="menutitle_showDurations">Durations Report</string>
     <string name="manumain_showAbaut">About TaskTimer</string>
     <string name="menumain_generate">Generate data</string>
-    <string name="no_task_message">No Task Selected</string>
+    <string name="no_task_message">No Task being timed</string>
     <string name="edit_button_description">Button to edit a tasks detail</string>
     <string name="delete_button_description">Button to delete a task</string>
     <string name="sortorder_hint">Sort order</string>
@@ -33,4 +33,5 @@
     <string name="about_weblink">https://github.com/BManchi</string>
     <string name="about_email">For support, email tasktimer@bmanchi.com</string>
     <string name="about_credits">Icon derived from <b>analog clock</b> at openclipart.org <b>Anonymus</b></string>
+    <string name="timing_message">currently timing %1$s</string>
 </resources>

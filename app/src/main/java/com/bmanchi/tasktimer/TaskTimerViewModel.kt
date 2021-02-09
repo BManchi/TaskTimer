@@ -24,13 +24,22 @@ class TaskTimerViewModel(application: Application): AndroidViewModel(application
             loadTasks()
         }
     }
+
+    private var currentTiming: Timing? = null
+
     private val databaseCursor = MutableLiveData<Cursor>()
     val cursor: LiveData<Cursor>
     get() = databaseCursor
 
+    private val taskTiming = MutableLiveData<String>()
+    val timing: LiveData<String>
+        get() = taskTiming
+
     init {
         Log.d(TAG, "TaskTimerViewModel: created")
         getApplication<Application>().contentResolver.registerContentObserver(TasksContract.CONTENT_URI, true, contentObserver)
+
+        currentTiming = retrieveTiming()
         loadTasks()
     }
 
@@ -83,6 +92,93 @@ class TaskTimerViewModel(application: Application): AndroidViewModel(application
         }
     }
 
+    fun timeTask(task: Task) {
+        Log.d(TAG, "timeTask: Called")
+        // use local variable to allow smart casts
+        val timingRecord = currentTiming
+
+        if (timingRecord == null) {
+            // no task being timed, start timing the new task
+            currentTiming = Timing(task.id)
+             saveTiming(currentTiming!!)
+        } else {
+            // we have a task being timed, so save it
+            timingRecord.setDuration()
+              saveTiming(timingRecord)
+
+            if (task.id == timingRecord.taskId) {
+                // the current task was tapped a second time, stop timing
+                currentTiming = null
+            } else {
+                // a new task is  being timed
+                val newTiming = Timing(task.id)
+                saveTiming(newTiming)
+                currentTiming = newTiming
+            }
+        }
+
+        // Update the LiveData
+        taskTiming.value = if (currentTiming != null) task.name else null
+    }
+
+    private fun saveTiming(currentTiming: Timing) {
+        Log.d(TAG, "saveTiming: called")
+
+        // we are updating, or inserting a new row?
+        val inserting= (currentTiming.duration == 0L)
+
+        val values = ContentValues().apply {
+            if (inserting){
+                put(TimingsContract.Columns.TIMING_TASK_ID, currentTiming.taskId)
+                put(TimingsContract.Columns.TIMING_START_TIME, currentTiming.startTime)
+            }
+            put(TimingsContract.Columns.TIMINGS_DURATION, currentTiming.duration)
+        }
+
+        GlobalScope.launch {
+            if (inserting) {
+                val uri = getApplication<Application>().contentResolver.insert(TimingsContract.CONTENT_URI, values)
+                if (uri != null) {
+                    currentTiming.id = TimingsContract.getId(uri)
+                }
+            } else {
+                getApplication<Application>().contentResolver.update(TimingsContract.buildUriFromId(currentTiming.id), values, null, null)
+            }
+        }
+
+    }
+
+    private fun retrieveTiming(): Timing? {
+        Log.d(TAG, "retrieveTiming: starts")
+
+        val timing: Timing?
+
+        val timingCursor: Cursor? = getApplication<Application>().contentResolver.query(
+            CurrentTimingContract.CONTENT_URI,
+            null,
+            null,
+            null,
+            null)
+
+        if (timingCursor != null && timingCursor.moveToFirst()) {
+            // We have an un-timed record
+            val id = timingCursor.getLong(timingCursor.getColumnIndex(CurrentTimingContract.Columns.TIMING_ID))
+            val taskId = timingCursor.getLong(timingCursor.getColumnIndex(CurrentTimingContract.Columns.TASK_ID))
+            val startTime = timingCursor.getLong(timingCursor.getColumnIndex(CurrentTimingContract.Columns.START_TIME))
+            val name = timingCursor.getString(timingCursor.getColumnIndex(CurrentTimingContract.Columns.TASK_NAME))
+            timing = Timing(taskId, startTime, id)
+
+            // Update the LiveData
+            taskTiming.value = name
+        } else {
+            timing = null
+        }
+
+        timingCursor?.close()
+
+        Log.d(TAG, "retrieveTiming returning")
+        return timing
+    }
     override fun onCleared() {
         Log.d(TAG, "onCleared: called")
         getApplication<Application>().contentResolver.unregisterContentObserver(contentObserver)

@@ -28,11 +28,12 @@
         app:layout_constraintTop_toBottomOf="@+id/firstDayPrompt" />
 
     <TextView
-        android:id="@+id/IgnoreSecondsTitle"
+        android:id="@+id/ignoreSecondsTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="24dp"
+        android:ems="35"
         android:text="@string/settingsIgnoreSecondsTitle"
         android:textColor="?android:attr/textColorPrimary"
         app:layout_constraintStart_toStartOf="parent"
@@ -48,11 +49,11 @@
         android:progress="1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/IgnoreSecondsTitle" />
+        app:layout_constraintTop_toBottomOf="@+id/ignoreSecondsTitle" />
 
     <Button
         android:id="@+id/okButton"
-        style="?attr/buttonBarPositiveButtonStyle"
+        style="@android:style/Widget.DeviceDefault.Button.Colored"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
@@ -63,7 +64,7 @@
 
     <Button
         android:id="@+id/cancelButton"
-        style="?attr/buttonBarNegativeButtonStyle"
+        style="@android:style/Widget.DeviceDefault.Button.Colored"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="40dp"

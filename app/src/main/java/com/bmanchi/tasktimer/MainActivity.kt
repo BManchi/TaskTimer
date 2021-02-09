@@ -10,7 +10,10 @@ import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.content_main.*
+import kotlinx.android.synthetic.main.fragment_main.*
 
 private const val TAG = "MainActivity"
 private const val DIALOG_ID_CANCEL_EDIT = 1
@@ -25,6 +28,8 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
 
     // module scope because we need to dismiss it in onStop (E.g. when orientation changes) to avoid memory leaks.
     private var aboutDialog: AlertDialog? = null
+
+    private val viewModel by lazy { ViewModelProviders.of(this).get(TaskTimerViewModel::class.java)}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,6 +86,14 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show()
         }*/
+
+        viewModel.timing.observe(this, Observer<String> { timing ->
+            current_task.text = if (timing != null){
+                getString(R.string.timing_message, timing)
+            } else{
+                getString(R.string.no_task_message)
+            }
+        })
     }
 
     private fun showEditPane() {
@@ -124,7 +137,10 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
         // as you specify a parent activity in AndroidManifest.xml.
         when (item.itemId) {
             R.id.menumain_addTask -> taskEditRequest(null)
-//            R.id.menumain_settings -> true
+            R.id.menumain_settings -> {
+                val dialog = SettingsDialog()
+                dialog.show(supportFragmentManager, null)
+            }
             R.id.menumain_showAbaut -> showAboutDialog()
             android.R.id.home -> {
                 Log.d(TAG, "onOptionsItemSelected: home button pressed")
