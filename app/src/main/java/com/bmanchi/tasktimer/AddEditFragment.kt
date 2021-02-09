@@ -53,7 +53,7 @@ class AddEditFragment : Fragment() {
                 Log.d(TAG, "onViewCreated: task details found, editing task ${task.id}")
                 addedit_name.setText(task.name)
                 addedit_description.setText(task.description)
-                addedit_sortorder.setText(Integer.toString(task.sortOrder))
+                addedit_sortorder.setText(task.sortOrder.toString())
             } else {
                 // No task, so we must be adding a new task
                 Log.d(TAG, "onViewCreated: no arguments, adding new record")
