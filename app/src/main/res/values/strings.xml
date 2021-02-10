@@ -34,4 +34,10 @@
     <string name="about_email">For support, email tasktimer@bmanchi.com</string>
     <string name="about_credits">Icon derived from <b>analog clock</b> at openclipart.org <b>Anonymus</b></string>
     <string name="timing_message">currently timing %1$s</string>
+    <string name="td_text_name">Task Name</string>
+    <string name="td_text_date">Date</string>
+    <string name="td_text_duration">Duration</string>
+    <string name="td_text_description">Description</string>
+    <string name="title_activity_durations_report">DurationsReport</string>
+    <string name="previous">Previous</string>
 </resources>

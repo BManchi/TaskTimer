@@ -17,8 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_main.*
 import java.lang.AssertionError
 
-const val DIALOG_ID_DELETE = 1
-const val DIALOG_TASK_ID = "task_id"
+private const val DIALOG_ID_DELETE = 1
+private const val DIALOG_TASK_ID = "task_id"
 
 private const val TAG = "MainActivityFragment"
 /**
@@ -28,7 +28,7 @@ class MainActivityFragment : Fragment(),
 CursorRecyclerViewAdapter.OnTaskClickListener,
 AppDialog.DialogEvents {
 
-    private val viewModel by lazy { ViewModelProvider(requireActivity()).get(TaskTimerViewModel::class.java) }
+    private val viewModel by lazy { ViewModelProviders.of(requireActivity()).get(TaskTimerViewModel::class.java) }
     private val mAdapter = CursorRecyclerViewAdapter(null, this)
 
     /**
@@ -40,7 +40,7 @@ AppDialog.DialogEvents {
         super.onAttach(context)
 
         if (context !is OnTaskEdit) {
-            throw RuntimeException("${context.toString()} must implement OnTaskEdit")
+            throw RuntimeException("$context must implement OnTaskEdit")
         }
     }
 

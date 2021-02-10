@@ -1,5 +1,6 @@
 package com.bmanchi.tasktimer
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
@@ -12,6 +13,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import com.bmanchi.tasktimer.debug.TestData
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.android.synthetic.main.fragment_main.*
 
@@ -32,11 +34,13 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
     private val viewModel by lazy { ViewModelProviders.of(this).get(TaskTimerViewModel::class.java)}
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d(TAG, "onCreate: starts")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
 
         mTwoPane = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        Log.d(TAG, "onCreate: twoPane is $mTwoPane")
 
         val fragment = findFragmentById(R.id.task_details_container)
         if (fragment != null) {
@@ -94,6 +98,8 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
                 getString(R.string.no_task_message)
             }
         })
+
+        Log.d(TAG, "onCreate: finished")
     }
 
     private fun showEditPane() {
@@ -128,6 +134,13 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
+
+        if (BuildConfig.DEBUG) {
+            val generate = menu.findItem(R.id.menumain_generate)
+            generate.isVisible = true
+        }
+
+
         return true
     }
 
@@ -137,11 +150,13 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
         // as you specify a parent activity in AndroidManifest.xml.
         when (item.itemId) {
             R.id.menumain_addTask -> taskEditRequest(null)
+            R.id.menumain_showDurations -> startActivity(Intent(this, DurationsReport::class.java))
             R.id.menumain_settings -> {
                 val dialog = SettingsDialog()
                 dialog.show(supportFragmentManager, null)
             }
             R.id.menumain_showAbaut -> showAboutDialog()
+            R.id.menumain_generate -> TestData.generateTestData(contentResolver)
             android.R.id.home -> {
                 Log.d(TAG, "onOptionsItemSelected: home button pressed")
                 val fragment = findFragmentById(R.id.task_details_container)

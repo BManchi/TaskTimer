@@ -23,7 +23,7 @@
 
     <style name="Theme.TaskTimer.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <style name="SettingsDialogStyle" parent ="Theme.AppCompat.Light.Dialog.Alert">
-        <item name = "windowNoTitle">false</item>
+    <style name="SettingsDialogStyle" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="windowNoTitle">false</item>
     </style>
 </resources>
