@@ -27,6 +27,10 @@ class DurationsRVAdapter(context: Context, private var cursor: Cursor?) : Recycl
         return ViewHolder(view)
     }
 
+    override fun getItemCount(): Int {
+        return cursor?.count ?: 0
+    }
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val cursor = cursor
 
@@ -62,15 +66,13 @@ class DurationsRVAdapter(context: Context, private var cursor: Cursor?) : Recycl
         return String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
     }
 
-    override fun getItemCount(): Int {
-        return cursor?.count ?: 0
-    }
-
     fun swapCursor(newCursor: Cursor?): Cursor? {
         if (newCursor === cursor) {
             return null
         }
+
         val numItems = itemCount
+
         val oldCursor = cursor
         cursor = newCursor
         if (newCursor != null) {

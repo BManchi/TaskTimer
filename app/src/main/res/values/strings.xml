@@ -40,4 +40,9 @@
     <string name="td_text_description">Description</string>
     <string name="title_activity_durations_report">DurationsReport</string>
     <string name="previous">Previous</string>
+    <string name="rm_title_filter_day">Show day</string>
+    <string name="rm_title_filter_week">Show week</string>
+    <string name="rm_title_filter_date">Set report date</string>
+    <string name="rm_title_delete">Delete old timings</string>
+    <string name="delete_title_filter">Select date for report</string>
 </resources>

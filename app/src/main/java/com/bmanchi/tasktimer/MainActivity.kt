@@ -92,9 +92,9 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
         }*/
 
         viewModel.timing.observe(this, Observer<String> { timing ->
-            current_task.text = if (timing != null){
+            current_task.text = if (timing != null) {
                 getString(R.string.timing_message, timing)
-            } else{
+            } else {
                 getString(R.string.no_task_message)
             }
         })
@@ -250,7 +250,7 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
     }
 
     override fun onStop() {
-        Log.d(TAG, "onStop called ")
+        Log.d(TAG, "onStop: called")
         super.onStop()
         if (aboutDialog?.isShowing == true) {
             aboutDialog?.dismiss()

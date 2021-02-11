@@ -92,12 +92,15 @@ class AppDialog: AppCompatDialogFragment() {
     override fun onDetach() {
         Log.d(TAG, "onDetached called")
         super.onDetach()
+
+        // Reset the active callbacks interface, because we're no longer attached.
+        dialogEvents = null
     }
 
     override fun onCancel(dialog: DialogInterface) {
         Log.d(TAG, "onCancel called")
         val dialogId = requireArguments().getInt(DIALOG_ID)
-        dialogEvents?.onDialogCancelled(dialogId)
+//        dialogEvents?.onDialogCancelled(dialogId)
     }
 
     override fun onDismiss(dialog: DialogInterface) {

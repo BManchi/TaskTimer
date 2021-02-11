@@ -12,7 +12,12 @@
         <activity
             android:name=".DurationsReport"
             android:label="@string/title_activity_durations_report"
-            android:theme="@style/Theme.TaskTimer.NoActionBar"></activity>
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.Design.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.bmanchi.tasktimer.MainActivity" />
+        </activity>
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"

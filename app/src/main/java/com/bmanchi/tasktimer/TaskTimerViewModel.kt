@@ -51,12 +51,11 @@ class TaskTimerViewModel(application: Application): AndroidViewModel(application
         // <order by> Tasks.Sortorder, Tasks.Name
         val sortOrder = "${TasksContract.Columns.TASK_SORT_ORDER}, ${TasksContract.Columns.TASK_NAME}"
         GlobalScope.launch {
-            val cursor = getApplication<Application>().contentResolver.query(
+        val cursor = getApplication<Application>().contentResolver.query(
                 TasksContract.CONTENT_URI,
                 projection, null, null,
-                sortOrder
-            )
-            databaseCursor.postValue(cursor)
+                sortOrder)
+        databaseCursor.postValue(cursor)
         }
     }
 
@@ -71,14 +70,18 @@ class TaskTimerViewModel(application: Application): AndroidViewModel(application
 
             if (task.id == 0L) {
                 GlobalScope.launch {
-                    Log.d(TAG, "saveTask: adding a new task")
+                    Log.d(TAG, "saveTask: adding new task")
                     val uri = getApplication<Application>().contentResolver?.insert(TasksContract.CONTENT_URI, values)
+                    if (uri != null) {
+                        task.id = TasksContract.getId(uri)
+                        Log.d(TAG, "saveTask: new id is ${task.id}")
+                    }
                 }
             } else {
                 // task has an id, so we're updating
                 GlobalScope.launch {
                     Log.d(TAG, "saveTask: updating task")
-                    getApplication<Application>().contentResolver?.update(TasksContract.buildUriFromId(task.id), values,null, null)
+                    getApplication<Application>().contentResolver?.update(TasksContract.buildUriFromId(task.id), values, null, null)
                 }
             }
         }
@@ -86,7 +89,7 @@ class TaskTimerViewModel(application: Application): AndroidViewModel(application
     }
 
     fun deleteTask(taskId: Long) {
-        Log.d(TAG, "deleting a task")
+        Log.d(TAG, "Deleting task")
         GlobalScope.launch {
             getApplication<Application>().contentResolver?.delete(TasksContract.buildUriFromId(taskId), null, null)
         }
