@@ -28,6 +28,9 @@ private const val CURRENT_TIMING = 300
 
 private const val TASK_DURATIONS = 400
 
+private const val PARAMETERS = 500
+private const val PARAMETERS_ID = 501
+
 val CONTENT_AUTHORITY_URI: Uri = Uri.parse("content://$CONTENT_AUTHORITY")
 
 class AppProvider : ContentProvider() {
@@ -51,6 +54,9 @@ class AppProvider : ContentProvider() {
 
         matcher.addURI(CONTENT_AUTHORITY, DurationsContract.TABLE_NAME, TASK_DURATIONS)
 
+        matcher.addURI(CONTENT_AUTHORITY, ParametersContract.TABLE_NAME, PARAMETERS)
+        matcher.addURI(CONTENT_AUTHORITY, "${ParametersContract.TABLE_NAME}/#", PARAMETERS_ID)
+
         return matcher
     }
 
@@ -72,7 +78,11 @@ class AppProvider : ContentProvider() {
 
             CURRENT_TIMING -> CurrentTimingContract.CONTENT_ITEM_TYPE
 
-            TASK_DURATIONS -> DurationsContract.CONTENT_TYPE
+            TASK_DURATIONS -> DurationsContract.CONTENT_ITEM_TYPE
+
+            PARAMETERS -> ParametersContract.CONTENT_TYPE
+
+            PARAMETERS_ID -> ParametersContract.CONTENT_ITEM_TYPE
 
             else -> throw IllegalArgumentException("unknown Uri: $uri")
         }
@@ -111,16 +121,27 @@ class AppProvider : ContentProvider() {
 
             TASK_DURATIONS -> queryBuilder.tables = DurationsContract.TABLE_NAME
 
+            PARAMETERS -> queryBuilder.tables = ParametersContract.TABLE_NAME
+
+            PARAMETERS_ID -> {
+                queryBuilder.tables = ParametersContract.TABLE_NAME
+                val parameterId = ParametersContract.getId(uri)
+                queryBuilder.appendWhere("${ParametersContract.Columns.ID} = ")
+                queryBuilder.appendWhereEscapeString("$parameterId")
+            }
+
             else -> throw IllegalArgumentException("Unknown URI: $uri")
         }
 
-        val db = AppDatabase.getInstance(context!!).readableDatabase
-        //        Log.d(TAG, "query: rows in returned cursor = ${cursor.count}") // TODO remove this line
+        val context = context ?: throw NullPointerException("In query function.  Context can't be null here!")
+        val db = AppDatabase.getInstance(context).readableDatabase
+        val cursor = queryBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder)
+        Log.d(TAG, "query: rows in returned cursor = ${cursor.count}") // TODO remove this line
 
-        return queryBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder)
+        return cursor
     }
 
-    override fun insert(uri: Uri, values: ContentValues?): Uri? {
+    override fun insert(uri: Uri, values: ContentValues?): Uri {
         Log.d(TAG, "insert: called with uri $uri")
         val match = uriMatcher.match(uri)
         Log.d(TAG, "insert: match is $match")
@@ -128,9 +149,11 @@ class AppProvider : ContentProvider() {
         val recordId: Long
         val returnUri: Uri
 
+        val context = context ?: throw NullPointerException("In insert function.  Context can't be null here!")
+
         when(match) {
             TASKS -> {
-                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val db = AppDatabase.getInstance(context).writableDatabase
                 recordId = db.insert(TasksContract.TABLE_NAME, null, values)
                 if (recordId != -1L) {
                     returnUri = TasksContract.buildUriFromId(recordId)
@@ -139,9 +162,9 @@ class AppProvider : ContentProvider() {
                 }
             }
             TIMINGS -> {
-                val db = AppDatabase.getInstance(context!!).writableDatabase
-                recordId = db.insert(TimingsContract.TABLE_NAME, null, values)
-                if (recordId != -1L) {
+                val db = AppDatabase.getInstance(context).writableDatabase
+                recordId = db.insert(TimingsContract.TABLE_NAME, null,values)
+                if(recordId != -1L) {
                     returnUri = TimingsContract.buildUriFromId(recordId)
                 } else {
                     throw SQLException("Failed to insert, Uri was $uri")
@@ -154,7 +177,7 @@ class AppProvider : ContentProvider() {
         if (recordId > 0) {
             // something was inserted
             Log.d(TAG, "insert: Setting notifyChange with $uri")
-            context?.contentResolver?.notifyChange(uri, null)
+            context.contentResolver?.notifyChange(uri, null)
         }
 
         Log.d(TAG, "Exiting insert, returning $returnUri")
@@ -169,15 +192,17 @@ class AppProvider : ContentProvider() {
         val count: Int
         var selectionCriteria: String
 
+        val context = context ?: throw NullPointerException("In update function.  Context can't be null here!")
+
         when(match) {
 
             TASKS -> {
-                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val db = AppDatabase.getInstance(context).writableDatabase
                 count = db.update(TasksContract.TABLE_NAME, values, selection, selectionArgs)
             }
 
             TASKS_ID -> {
-                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val db = AppDatabase.getInstance(context).writableDatabase
                 val id = TasksContract.getId(uri)
                 selectionCriteria = "${TasksContract.Columns.ID} = $id"
 
@@ -189,12 +214,12 @@ class AppProvider : ContentProvider() {
             }
 
             TIMINGS -> {
-                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val db = AppDatabase.getInstance(context).writableDatabase
                 count = db.update(TimingsContract.TABLE_NAME, values, selection, selectionArgs)
             }
 
             TIMINGS_ID -> {
-                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val db = AppDatabase.getInstance(context).writableDatabase
                 val id = TimingsContract.getId(uri)
                 selectionCriteria = "${TimingsContract.Columns.ID} = $id"
 
@@ -205,6 +230,18 @@ class AppProvider : ContentProvider() {
                 count = db.update(TimingsContract.TABLE_NAME, values, selectionCriteria, selectionArgs)
             }
 
+            PARAMETERS_ID -> {
+                val db = AppDatabase.getInstance(context).writableDatabase
+                val id = ParametersContract.getId(uri)
+                selectionCriteria = "${ParametersContract.Columns.ID} = $id"
+
+                if(selection != null && selection.isNotEmpty()) {
+                    selectionCriteria += " AND ($selection)"
+                }
+
+                count = db.update(ParametersContract.TABLE_NAME, values, selectionCriteria, selectionArgs)
+            }
+
             else -> throw IllegalArgumentException("Unknown uri: $uri")
         }
 
@@ -212,7 +249,7 @@ class AppProvider : ContentProvider() {
             // something was updated
             Log.d(TAG, "update: Setting notifyChange with $uri")
 
-            context?.contentResolver?.notifyChange(uri, null)
+            context.contentResolver?.notifyChange(uri, null)
         }
 
         Log.d(TAG, "Exiting update, returning $count")
@@ -227,15 +264,17 @@ class AppProvider : ContentProvider() {
         val count: Int
         var selectionCriteria: String
 
+        val context = context ?: throw NullPointerException("In delete function.  Context can't be null here!")
+
         when(match) {
 
             TASKS -> {
-                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val db = AppDatabase.getInstance(context).writableDatabase
                 count = db.delete(TasksContract.TABLE_NAME, selection, selectionArgs)
             }
 
             TASKS_ID -> {
-                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val db = AppDatabase.getInstance(context).writableDatabase
                 val id = TasksContract.getId(uri)
                 selectionCriteria = "${TasksContract.Columns.ID} = $id"
 
@@ -247,12 +286,12 @@ class AppProvider : ContentProvider() {
             }
 
             TIMINGS -> {
-                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val db = AppDatabase.getInstance(context).writableDatabase
                 count = db.delete(TimingsContract.TABLE_NAME, selection, selectionArgs)
             }
 
             TIMINGS_ID -> {
-                val db = AppDatabase.getInstance(context!!).writableDatabase
+                val db = AppDatabase.getInstance(context).writableDatabase
                 val id = TimingsContract.getId(uri)
                 selectionCriteria = "${TimingsContract.Columns.ID} = $id"
 
@@ -269,7 +308,8 @@ class AppProvider : ContentProvider() {
         if (count > 0 ){
             // something was deleted
             Log.d(TAG, "delete: Setting notifyChange with $uri")
-            context?.contentResolver?.notifyChange(uri, null)
+
+            context.contentResolver?.notifyChange(uri, null)
         }
 
         Log.d(TAG, "Exiting delete, returning $count")

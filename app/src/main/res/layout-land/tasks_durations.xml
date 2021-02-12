@@ -34,7 +34,7 @@
         android:padding="4dp"
         android:text="@string/td_text_description"
         app:layout_constraintBaseline_toBaselineOf="@+id/td_name_heading"
-        app:layout_constraintEnd_toStartOf="@+id/td_start_headhing"
+        app:layout_constraintEnd_toStartOf="@+id/td_start_heading"
         app:layout_constraintHorizontal_weight="2"
         app:layout_constraintStart_toEndOf="@id/td_name_heading" />
 
@@ -48,14 +48,14 @@
         android:text="@string/td_text_duration"
         android:textAlignment="textStart"
         android:textStyle="bold"
-        app:layout_constraintBaseline_toBaselineOf="@+id/td_start_headhing"
+        app:layout_constraintBaseline_toBaselineOf="@+id/td_start_heading"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintHorizontal_weight="1"
-        app:layout_constraintStart_toEndOf="@+id/td_start_headhing" />
+        app:layout_constraintStart_toEndOf="@+id/td_start_heading" />
 
     <TextView
-        android:id="@+id/td_start_headhing"
+        android:id="@+id/td_start_heading"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"

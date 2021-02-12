@@ -1,13 +1,13 @@
 package com.bmanchi.tasktimer
 
 import android.os.Bundle
-import androidx.preference.PreferenceManager.getDefaultSharedPreferences
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatDialogFragment
+import androidx.preference.PreferenceManager.getDefaultSharedPreferences
 import kotlinx.android.synthetic.main.settings_dialog.*
 import java.util.*
 
@@ -120,6 +120,7 @@ class SettingsDialog : AppCompatDialogFragment() {
             firstDay = getInt(SETTINGS_FIRST_DAY_OF_WEEK, defaultFirstDayOfWeek)
             ignoreLessThan = getInt(SETTINGS_IGNORE_LESS_THAN, SETTINGS_DEFAULT_IGNORE_LESS_THAN)
         }
+        Log.d(TAG, "Retrieving first day = $firstDay, ignoreLessThan = $ignoreLessThan")
     }
 
     private fun saveValues() {

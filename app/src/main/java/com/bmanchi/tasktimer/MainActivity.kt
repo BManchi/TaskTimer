@@ -12,7 +12,6 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-
 import com.bmanchi.tasktimer.debug.TestData
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.android.synthetic.main.fragment_main.*
@@ -326,5 +325,13 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
 //        Log.d(TAG, "Number of rows affected is $rowsAffected")
 //    }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        Log.d(TAG, "onSaveInstanceState: called")
+        super.onSaveInstanceState(outState)
+    }
 
+    override fun onDestroy() {
+        Log.d(TAG, "onDestroy: called")
+        super.onDestroy()
+    }
 }

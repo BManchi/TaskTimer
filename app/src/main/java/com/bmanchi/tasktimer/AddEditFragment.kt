@@ -5,12 +5,12 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.fragment_add_edit.*
 
 private const val TAG ="AddEditFragment"
@@ -33,6 +33,8 @@ class AddEditFragment : Fragment() {
         Log.d(TAG, "onCreate: starts")
         super.onCreate(savedInstanceState)
         task = arguments?.getParcelable(ARG_TASK)
+
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -54,13 +56,20 @@ class AddEditFragment : Fragment() {
                 addedit_name.setText(task.name)
                 addedit_description.setText(task.description)
                 addedit_sortorder.setText(task.sortOrder.toString())
+
+                viewModel.startEditing(task.id)
             } else {
                 // No task, so we must be adding a new task
                 Log.d(TAG, "onViewCreated: no arguments, adding new record")
             }
         }
     }
-    
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        Log.d(TAG, "onPrepareOptionsMenu: called")
+        menu.clear()
+    }
+
     private fun taskFromUi(): Task {
         val sortOrder = if (addedit_sortorder.text.isNotEmpty()) {
             Integer.parseInt(addedit_sortorder.text.toString())
@@ -161,6 +170,8 @@ class AddEditFragment : Fragment() {
         Log.d(TAG, "onDetach: starts")
         super.onDetach()
         listener = null
+
+        viewModel.stopEditing()
     }
 
     interface OnSaveClicked {

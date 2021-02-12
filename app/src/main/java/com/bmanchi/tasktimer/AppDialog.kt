@@ -19,6 +19,15 @@ class AppDialog: AppCompatDialogFragment() {
 
     private var dialogEvents: DialogEvents? = null
 
+    /**
+     * * The dialogue's callback interface, to notify of user selected results (deletion confirmed, etc.).
+     */
+
+    internal interface DialogEvents {
+        fun onPositiveDialogResult(dialogId: Int, args: Bundle) {}
+        fun onNegativeDialogResult(dialogId: Int, args: Bundle) {}
+        fun onDialogCancelled(dialogId: Int) {}
+    }
 
     override fun onAttach(context: Context) {
         Log.d(TAG, "onAttach called: context is $context")
@@ -99,8 +108,8 @@ class AppDialog: AppCompatDialogFragment() {
 
     override fun onCancel(dialog: DialogInterface) {
         Log.d(TAG, "onCancel called")
-//        val dialogId = requireArguments().getInt(DIALOG_ID)
-//        dialogEvents?.onDialogCancelled(dialogId)
+        val dialogId = requireArguments().getInt(DIALOG_ID)
+        dialogEvents?.onDialogCancelled(dialogId)
     }
 
     override fun onDismiss(dialog: DialogInterface) {
@@ -108,9 +117,4 @@ class AppDialog: AppCompatDialogFragment() {
         super.onDismiss(dialog)
     }
 
-    internal interface DialogEvents {
-        fun onPositiveDialogResult(dialogId: Int, args: Bundle)
-//        fun onNegativeDialogResult(dialogId: Int, args: Bundle)
-//        fun onDialogCancelled(dialogId: Int)
-    }
 }

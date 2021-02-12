@@ -46,7 +46,7 @@ class DurationsReport : AppCompatActivity(),
         // Set the listener for the buttons so we can sort the report.
         td_name_heading.setOnClickListener(this)
         td_description_heading?.setOnClickListener(this)  // description can be null in portrait view
-        td_start_headhing.setOnClickListener(this)
+        td_start_heading.setOnClickListener(this)
         td_duration_heading.setOnClickListener(this)
     }
 
@@ -54,7 +54,7 @@ class DurationsReport : AppCompatActivity(),
         when (v.id) {
             R.id.td_name_heading -> viewModel.sortOrder = SortColumns.NAME
             R.id.td_description_heading -> viewModel.sortOrder = SortColumns.DESCRIPTION
-            R.id.td_start_headhing -> viewModel.sortOrder = SortColumns.START_DATE
+            R.id.td_start_heading -> viewModel.sortOrder = SortColumns.START_DATE
             R.id.td_duration_heading -> viewModel.sortOrder = SortColumns.DURATION
         }
     }
@@ -73,7 +73,7 @@ class DurationsReport : AppCompatActivity(),
                 return true
             }
             R.id.rm_filter_date -> {
-                showDatePickerDialog(getString(R.string.delete_title_filter), DIALOG_FILTER)
+                showDatePickerDialog(getString(R.string.date_title_filter), DIALOG_FILTER)
                 return true
             }
             R.id.rm_delete -> {
@@ -128,7 +128,7 @@ class DurationsReport : AppCompatActivity(),
             DIALOG_DELETE -> {
                 // we need to format the date for the user's locale
                 val cal = GregorianCalendar()
-                cal.set(year, month, dayOfMonth)
+                cal.set(year, month, dayOfMonth, 0, 0, 0)
                 val fromDate = DateFormat.getDateFormat(this).format(cal.time)
 
                 val dialog = AppDialog()

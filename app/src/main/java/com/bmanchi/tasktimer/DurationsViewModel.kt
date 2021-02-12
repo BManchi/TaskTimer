@@ -6,12 +6,13 @@ import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
 import android.os.Handler
-import androidx.preference.PreferenceManager
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.GlobalScope
+import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -92,6 +93,7 @@ class DurationsViewModel (application: Application): AndroidViewModel(applicatio
         calendar.firstDayOfWeek = firstDayOfWeek
 
         application.contentResolver.registerContentObserver(TimingsContract.CONTENT_URI, true, contentObserver)
+        application.contentResolver.registerContentObserver(ParametersContract.CONTENT_URI, true, contentObserver)
 
         val broadcastFilter = IntentFilter(Intent.ACTION_TIMEZONE_CHANGED)
         broadcastFilter.addAction(Intent.ACTION_LOCALE_CHANGED)
@@ -183,14 +185,14 @@ class DurationsViewModel (application: Application): AndroidViewModel(applicatio
         }
         Log.d(TAG, "order is $order")
 
-        GlobalScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val cursor = getApplication<Application>().contentResolver.query(
                     DurationsContract.CONTENT_URI,
                     null,
                     selection,
                     selectionArgs,
                     order)
-            databaseCursor.postValue(cursor)
+            databaseCursor.postValue(cursor!!)
         }
     }
 
@@ -204,7 +206,7 @@ class DurationsViewModel (application: Application): AndroidViewModel(applicatio
 
         Log.d(TAG, "Deleting records prior to $longDate")
 
-        GlobalScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             getApplication<Application>().contentResolver.delete(TimingsContract.CONTENT_URI, selection, selectionArgs)
         }
 
