@@ -17,4 +17,8 @@
         android:icon="@drawable/ic_baseline_delete_24"
         android:title="@string/rm_title_delete"
         app:showAsAction="collapseActionView" />
+    <item
+        android:id="@+id/rm_settings"
+        android:title="@string/action_settings"
+        app:showAsAction="never" />
 </menu>

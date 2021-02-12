@@ -1,6 +1,5 @@
 package com.bmanchi.tasktimer
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
@@ -10,6 +9,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatDialogFragment
 
 private const val TAG = "AppDialog"
+
 const val DIALOG_ID = "id"
 const val DIALOG_MESSAGE = "message"
 const val DIALOG_POSITIVE_RID = "positive_rid"
@@ -78,11 +78,11 @@ class AppDialog: AppCompatDialogFragment() {
             throw IllegalArgumentException("Must pass DIALOG_ID and DIALOG_MESSAGE in the bundle")
         }
         return builder.setMessage(messageString)
-            .setPositiveButton(positiveStringId) { dialogInterface, which ->
+            .setPositiveButton(positiveStringId) { _, _ ->
                 // callback positive result function
                 dialogEvents?.onPositiveDialogResult(dialogId, arguments)
             }
-            .setNegativeButton(negativeStringId) { dialogInterface, which ->
+            .setNegativeButton(negativeStringId) { _, _ ->
                 // callback negative result function, if you want to implement it.
                 // dialogEvents?.onNegativeDialogResult(dialogId, arguments)
             }
@@ -99,7 +99,7 @@ class AppDialog: AppCompatDialogFragment() {
 
     override fun onCancel(dialog: DialogInterface) {
         Log.d(TAG, "onCancel called")
-        val dialogId = requireArguments().getInt(DIALOG_ID)
+//        val dialogId = requireArguments().getInt(DIALOG_ID)
 //        dialogEvents?.onDialogCancelled(dialogId)
     }
 
@@ -110,7 +110,7 @@ class AppDialog: AppCompatDialogFragment() {
 
     internal interface DialogEvents {
         fun onPositiveDialogResult(dialogId: Int, args: Bundle)
-        fun onNegativeDialogResult(dialogId: Int, args: Bundle)
-        fun onDialogCancelled(dialogId: Int)
+//        fun onNegativeDialogResult(dialogId: Int, args: Bundle)
+//        fun onDialogCancelled(dialogId: Int)
     }
 }

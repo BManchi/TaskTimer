@@ -4,15 +4,15 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+
 import com.bmanchi.tasktimer.debug.TestData
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.android.synthetic.main.fragment_main.*
@@ -31,7 +31,8 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
     // module scope because we need to dismiss it in onStop (E.g. when orientation changes) to avoid memory leaks.
     private var aboutDialog: AlertDialog? = null
 
-    private val viewModel by lazy { ViewModelProviders.of(this).get(TaskTimerViewModel::class.java)}
+//    private val viewModel by lazy { ViewModelProviders.of(this).get(TaskTimerViewModel::class.java)}
+    private val viewModel: TaskTimerViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate: starts")
@@ -48,7 +49,7 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
             showEditPane()
         } else {
             task_details_container.visibility = if (mTwoPane) View.INVISIBLE else View.GONE
-            mainFragment.view?.visibility = View.VISIBLE
+            mainFragment.visibility = View.VISIBLE
         }
         /*testInsert("prueba 1", "probando agregar", 1)
         testInsert("prueba 2", "probando agregar", 2)
@@ -91,7 +92,7 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
                     .setAction("Action", null).show()
         }*/
 
-        viewModel.timing.observe(this, Observer<String> { timing ->
+        viewModel.timing.observe(this, { timing ->
             current_task.text = if (timing != null) {
                 getString(R.string.timing_message, timing)
             } else {
@@ -105,7 +106,7 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
     private fun showEditPane() {
         task_details_container.visibility = View.VISIBLE
         // hide the left hand pane, if in single pane vieew
-        mainFragment.view?.visibility = if (mTwoPane) View.VISIBLE else View.GONE
+        mainFragment.visibility = if (mTwoPane) View.VISIBLE else View.GONE
     }
 
     private fun removeEditePane(fragment: Fragment? = null) {
@@ -120,7 +121,7 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
         // Set the visibility of the right hand pane
         task_details_container.visibility = if (mTwoPane) View.INVISIBLE else View.GONE
         // and show the left hand pane
-        mainFragment.view?.visibility = View.VISIBLE
+        mainFragment.visibility = View.VISIBLE
 
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
     }
@@ -263,14 +264,6 @@ class MainActivity : AppCompatActivity(), AddEditFragment.OnSaveClicked,
             val fragment = findFragmentById(R.id.task_details_container)
             removeEditePane(fragment)
         }
-    }
-
-    override fun onNegativeDialogResult(dialogId: Int, args: Bundle) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onDialogCancelled(dialogId: Int) {
-        TODO("Not yet implemented")
     }
 
     override fun onTaskEdit(task: Task) {

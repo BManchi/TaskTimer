@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.task_list_item.*
@@ -71,20 +70,22 @@ class CursorRecyclerViewAdapter(private var cursor: Cursor?, private val listene
             }
 
             // Create a task object from the data in the cursor
-            val task = Task(
-                cursor.getString(cursor.getColumnIndex(TasksContract.Columns.TASK_NAME)),
-                cursor.getString(cursor.getColumnIndex(TasksContract.Columns.TASK_DESCRIPTION)),
-                cursor.getInt(cursor.getColumnIndex(TasksContract.Columns.TASK_SORT_ORDER)))
-            // Remember that the id isn't set in the constructor
+            with (cursor) {
+                val task = Task(
+                    getString(getColumnIndex(TasksContract.Columns.TASK_NAME)),
+                    getString(getColumnIndex(TasksContract.Columns.TASK_DESCRIPTION)),
+                    getInt(getColumnIndex(TasksContract.Columns.TASK_SORT_ORDER)))
+                // Remember that the id isn't set in the constructor
 
-            task.id = cursor.getLong(cursor.getColumnIndex(TasksContract.Columns.ID))
+                task.id = cursor.getLong(cursor.getColumnIndex(TasksContract.Columns.ID))
 
+                holder.bind(task, listener)
+            }
 //            holder.tli_name.text = task.name
 //            holder.tli_description.text = task.description
 //            holder.tli_edit.visibility = View.VISIBLE       // TODO: add onClick
 //            holder.tli_delete.visibility = View.VISIBLE     // TODO: add onClick
 
-            holder.bind(task, listener)
         }
     }
 

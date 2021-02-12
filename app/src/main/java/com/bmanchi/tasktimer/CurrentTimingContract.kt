@@ -1,8 +1,6 @@
 package com.bmanchi.tasktimer
 
-import android.content.ContentUris
 import android.net.Uri
-import android.provider.BaseColumns
 
 object CurrentTimingContract {
     internal const val TABLE_NAME = "vwCurrentTiming"

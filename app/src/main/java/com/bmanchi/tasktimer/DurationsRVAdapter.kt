@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.task_durations_items.*
-import java.lang.IllegalStateException
 import java.util.*
 
 class ViewHolder(override val containerView: View) :

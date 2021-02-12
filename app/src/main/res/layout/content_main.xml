@@ -9,7 +9,7 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     android:baselineAligned="false">
 
-    <fragment
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/mainFragment"
         android:name="com.bmanchi.tasktimer.MainActivityFragment"
         android:layout_width="match_parent"
@@ -17,11 +17,11 @@
         android:layout_weight="1"
         tools:layout="@layout/fragment_main"/>
 
-    <FrameLayout
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/task_details_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="1">
 
-    </FrameLayout>
+    </androidx.fragment.app.FragmentContainerView>
 </LinearLayout>

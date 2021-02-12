@@ -7,8 +7,6 @@ import android.database.Cursor
 import android.database.SQLException
 import android.database.sqlite.SQLiteQueryBuilder
 import android.net.Uri
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.Log
 
 
@@ -32,7 +30,7 @@ private const val TASK_DURATIONS = 400
 
 val CONTENT_AUTHORITY_URI: Uri = Uri.parse("content://$CONTENT_AUTHORITY")
 
-class AppProvider() : ContentProvider() {
+class AppProvider : ContentProvider() {
 
     private val uriMatcher by lazy { buildUriMatcher()}
 
@@ -63,9 +61,7 @@ class AppProvider() : ContentProvider() {
 
     override fun getType(uri: Uri): String {
 
-        val match = uriMatcher.match(uri)
-
-        return when (match) {
+        return when (uriMatcher.match(uri)) {
             TASKS -> TasksContract.CONTENT_TYPE
 
             TASKS_ID -> TasksContract.CONTENT_ITEM_TYPE
@@ -119,10 +115,9 @@ class AppProvider() : ContentProvider() {
         }
 
         val db = AppDatabase.getInstance(context!!).readableDatabase
-        val cursor = queryBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder)
-        Log.d(TAG, "query: rows in returned cursor = ${cursor.count}") // TODO remove this line
+        //        Log.d(TAG, "query: rows in returned cursor = ${cursor.count}") // TODO remove this line
 
-        return cursor
+        return queryBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder)
     }
 
     override fun insert(uri: Uri, values: ContentValues?): Uri? {

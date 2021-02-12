@@ -2,29 +2,32 @@ package com.bmanchi.tasktimer
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.text.format.DateFormat
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.DatePicker
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
+
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.tasks_durations.*
-import java.lang.IllegalArgumentException
 import java.util.*
 
 private const val TAG = "DurationsReport"
 
 private const val DIALOG_FILTER = 1
 private const val DIALOG_DELETE = 2
+private const val DELETION_DATE = "Deletion date"
 
 class DurationsReport : AppCompatActivity(),
         DatePickerDialog.OnDateSetListener,
+        AppDialog.DialogEvents,
     View.OnClickListener {
 
-    private val viewModel by lazy { ViewModelProviders.of(this).get(DurationsViewModel::class.java)}
+//    private val viewModel by lazy { ViewModelProviders.of(this).get(DurationsViewModel::class.java)}
+    private val viewModel: DurationsViewModel by viewModels()
 
     private val reportAdapter by lazy { DurationsRVAdapter(this, null) }
 
@@ -38,7 +41,7 @@ class DurationsReport : AppCompatActivity(),
         td_list.adapter = reportAdapter
 
 //        loadData()  // Do not do on production. The data is queried every time the device is rotated
-        viewModel.cursor.observe(this, Observer { cursor -> reportAdapter.swapCursor(cursor)?.close()})
+        viewModel.cursor.observe(this, { cursor -> reportAdapter.swapCursor(cursor)?.close()})
 
         // Set the listener for the buttons so we can sort the report.
         td_name_heading.setOnClickListener(this)
@@ -62,9 +65,8 @@ class DurationsReport : AppCompatActivity(),
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
 
-        when (id) {
+        when (item.itemId) {
             R.id.rm_filter_period -> {
                 viewModel.toggleDisplayWeek()   // was showing a week, so now show a day - or vice versa
                 invalidateOptionsMenu()    // force call to onPrepareOptionsMenu to redraw our changed menu
@@ -75,8 +77,12 @@ class DurationsReport : AppCompatActivity(),
                 return true
             }
             R.id.rm_delete -> {
-                // we need to format the date for the user's locale
-                val cal = GregorianCalendar()
+                showDatePickerDialog(getString(R.string.date_title_delete), DIALOG_DELETE)
+                return true
+            }
+            R.id.rm_settings -> {
+                val dialog = SettingsDialog()
+                dialog.show(supportFragmentManager, "settings")
             }
         }
         return super.onOptionsItemSelected(item)
@@ -104,6 +110,9 @@ class DurationsReport : AppCompatActivity(),
         arguments.putInt(DATE_PICKER_ID, dialogId)
         arguments.putString(DATE_PICKER_TITLE, title)
         arguments.putSerializable(DATE_PICKER_DATE, viewModel.getFilterDate())
+
+        arguments.putInt(DATE_PICKER_FDOW, viewModel.firstDayOfWeek)
+
         dialogFragment.arguments = arguments
         dialogFragment.show(supportFragmentManager, "datePicker")
     }
@@ -112,13 +121,44 @@ class DurationsReport : AppCompatActivity(),
         Log.d(TAG, "onDataSet: called")
 
         // Check the id, so we know what to do with the result
-        val dialogId = view.tag as Int
-        when (dialogId) {
+        when (view.tag as Int) {
             DIALOG_FILTER -> {
                 viewModel.setReportDate(year, month, dayOfMonth)
             }
-            DIALOG_DELETE -> {}
+            DIALOG_DELETE -> {
+                // we need to format the date for the user's locale
+                val cal = GregorianCalendar()
+                cal.set(year, month, dayOfMonth)
+                val fromDate = DateFormat.getDateFormat(this).format(cal.time)
+
+                val dialog = AppDialog()
+                val args = Bundle()
+                args.putInt(DIALOG_ID, DIALOG_DELETE)  // use the same id value
+                args.putString(DIALOG_MESSAGE, getString(R.string.delete_timings_message , fromDate))
+
+                args.putLong(DELETION_DATE, cal.timeInMillis)
+                dialog.arguments = args
+                dialog.show(supportFragmentManager, null)
+
+            }
             else -> throw IllegalArgumentException("Invalid mode when receiving DatePickerDialog result")
         }
     }
+
+    override fun onPositiveDialogResult(dialogId: Int, args: Bundle) {
+        Log.d(TAG, "onPositiveDialogResult: called with id $dialogId")
+        if (dialogId == DIALOG_DELETE) {
+            // retrieve the date from the bundle
+            val deleteDate = args.getLong(DELETION_DATE)
+            viewModel.deleteRecords(deleteDate)
+        }
+    }
+
+//    override fun onNegativeDialogResult(dialogId: Int, args: Bundle) {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun onDialogCancelled(dialogId: Int) {
+//        TODO("Not yet implemented")
+//    }
 }

@@ -1,14 +1,13 @@
 package com.bmanchi.tasktimer
 
-import android.app.Activity
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.DatePicker
 import androidx.appcompat.app.AppCompatDialogFragment
-import java.lang.ClassCastException
 import java.util.*
 
 private const val TAG = "DatePickerFragment"
@@ -16,6 +15,7 @@ private const val TAG = "DatePickerFragment"
 const val DATE_PICKER_ID = "ID"
 const val DATE_PICKER_TITLE = "TITLE"
 const val DATE_PICKER_DATE = "DATE"
+const val DATE_PICKER_FDOW = "FIRST DAY OF WEEK"
 
 class DatePickerFragment : AppCompatDialogFragment(), DatePickerDialog.OnDateSetListener {
     private var dialogId = 0
@@ -45,6 +45,13 @@ class DatePickerFragment : AppCompatDialogFragment(), DatePickerDialog.OnDateSet
         val dpd = UnbuggyDatePickerDialog(context, this, year, month, day)
         if (title != null) {
             dpd.setTitle(title)
+        }
+
+        // Set the date picker's first day of the week, on API 21 and above
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val firstDayOfTheWeek = arguments?.getInt(DATE_PICKER_FDOW, cal.firstDayOfWeek)
+                    ?: cal.firstDayOfWeek
+            dpd.datePicker.firstDayOfWeek = firstDayOfTheWeek
         }
         return dpd
     }

@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.fragment_add_edit.*
 
@@ -25,7 +26,8 @@ class AddEditFragment : Fragment() {
 
     private var task: Task? = null
     private var listener: OnSaveClicked? = null
-    private val viewModel by lazy { ViewModelProviders.of(requireActivity()).get(TaskTimerViewModel::class.java) }
+//    private val viewModel by lazy { ViewModelProviders.of(requireActivity()).get(TaskTimerViewModel::class.java) }
+    private val viewModel: TaskTimerViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate: starts")
@@ -134,8 +136,8 @@ class AddEditFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         Log.d(TAG, "onActivityCreated: starts")
         super.onActivityCreated(savedInstanceState)
-        if (listener is AppCompatActivity) {
-            val actionBar = (listener as AppCompatActivity?)?.supportActionBar
+        if (activity is AppCompatActivity) {
+            val actionBar = (activity as AppCompatActivity?)?.supportActionBar
             actionBar?.setDisplayHomeAsUpEnabled(true)
         }
 

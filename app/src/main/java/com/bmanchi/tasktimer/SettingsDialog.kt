@@ -1,7 +1,7 @@
 package com.bmanchi.tasktimer
 
 import android.os.Bundle
-import android.preference.PreferenceManager.getDefaultSharedPreferences
+import androidx.preference.PreferenceManager.getDefaultSharedPreferences
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -29,7 +29,7 @@ class SettingsDialog : AppCompatDialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(TAG, "onCreate: called")
         super.onCreate(savedInstanceState)
-        setStyle(AppCompatDialogFragment.STYLE_NORMAL, R.style.SettingsDialogStyle)
+        setStyle(STYLE_NORMAL, R.style.SettingsDialogStyle)
         retainInstance = true
     }
     override fun onCreateView(

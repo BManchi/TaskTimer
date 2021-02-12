@@ -2,17 +2,18 @@ package com.bmanchi.tasktimer
 
 import android.app.Application
 import android.content.ContentValues
+import android.content.SharedPreferences
 import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
 import android.os.Handler
+import androidx.preference.PreferenceManager
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlin.concurrent.thread
 
 private const val TAG = "TaskTimerViewModel"
 
@@ -24,6 +25,16 @@ class TaskTimerViewModel(application: Application): AndroidViewModel(application
             loadTasks()
         }
     }
+
+    private val settings = PreferenceManager.getDefaultSharedPreferences(application)
+    private var ignoreLessThan = settings.getInt(SETTINGS_IGNORE_LESS_THAN, SETTINGS_DEFAULT_IGNORE_LESS_THAN)
+
+    private val settingsListener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key -> when (key) {
+        SETTINGS_IGNORE_LESS_THAN -> {
+            ignoreLessThan = sharedPreferences.getInt(key, SETTINGS_DEFAULT_IGNORE_LESS_THAN)
+            Log.d(TAG, "settingsListener: now ignoring timings less than $ignoreLessThan seconds")
+        }
+    } }
 
     private var currentTiming: Timing? = null
 
@@ -144,8 +155,17 @@ class TaskTimerViewModel(application: Application): AndroidViewModel(application
                 if (uri != null) {
                     currentTiming.id = TimingsContract.getId(uri)
                 }
-            } else {
-                getApplication<Application>().contentResolver.update(TimingsContract.buildUriFromId(currentTiming.id), values, null, null)
+            }
+            else {
+                // Only save if the duration is larger than the value we should ignore
+                if (currentTiming.duration >= ignoreLessThan) {
+                    Log.d(TAG, "saveTiming: saving timing with duration ${currentTiming.duration}")
+                    getApplication<Application>().contentResolver.update(TimingsContract.buildUriFromId(currentTiming.id), values, null, null)
+                } else {
+                    // Too short to save, delete it instead
+                    Log.d(TAG, "savetiming: deleting row with duration ${currentTiming.duration}")
+                    getApplication<Application>().contentResolver.delete(TimingsContract.buildUriFromId(currentTiming.id), null, null)
+                }
             }
         }
 
@@ -185,5 +205,7 @@ class TaskTimerViewModel(application: Application): AndroidViewModel(application
     override fun onCleared() {
         Log.d(TAG, "onCleared: called")
         getApplication<Application>().contentResolver.unregisterContentObserver(contentObserver)
+
+        settings.unregisterOnSharedPreferenceChangeListener(settingsListener)
     }
 }

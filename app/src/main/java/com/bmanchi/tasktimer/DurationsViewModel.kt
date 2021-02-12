@@ -1,7 +1,12 @@
 package com.bmanchi.tasktimer
 
 import android.app.Application
+import android.content.*
+import android.database.ContentObserver
 import android.database.Cursor
+import android.net.Uri
+import android.os.Handler
+import androidx.preference.PreferenceManager
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -21,8 +26,47 @@ enum class SortColumns {
 
 class DurationsViewModel (application: Application): AndroidViewModel(application) {
 
-    private val calendar = GregorianCalendar()
+    private val contentObserver = object : ContentObserver(Handler()) {
+        override fun onChange(selfChange: Boolean, uri: Uri?) {
+            Log.d(TAG, "contentObserver.onChange: called. uri is $uri")
+            loadData()
+        }
+    }
 
+    private var calendar = GregorianCalendar()
+
+    private val settings = PreferenceManager.getDefaultSharedPreferences(application)
+    private var _firstDayOfWeek = settings.getInt(SETTINGS_FIRST_DAY_OF_WEEK, calendar.firstDayOfWeek)
+    val firstDayOfWeek
+        get() = _firstDayOfWeek
+
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            Log.d(TAG, "broadcastReceiver.onReceive called. Intent is $intent")
+            val action = intent?.action
+            if (action == Intent.ACTION_TIMEZONE_CHANGED || action == Intent.ACTION_LOCALE_CHANGED) {
+                val currentTime = calendar.timeInMillis
+                calendar = GregorianCalendar()
+                calendar.timeInMillis = currentTime
+                Log.d(TAG, "DurationsViewModel: created. First day of week is $firstDayOfWeek")
+                _firstDayOfWeek = settings.getInt(SETTINGS_FIRST_DAY_OF_WEEK, calendar.firstDayOfWeek)
+                calendar.firstDayOfWeek = firstDayOfWeek
+                applyFilter()
+            }
+        }
+    }
+
+    private val settingsListener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+        when (key) {
+            SETTINGS_FIRST_DAY_OF_WEEK -> {
+                _firstDayOfWeek = sharedPreferences.getInt(key, calendar.firstDayOfWeek)
+                calendar.firstDayOfWeek = firstDayOfWeek
+                Log.d(TAG, "settingsListener: First day of week is now $firstDayOfWeek")
+                // Now re-query the database
+                applyFilter()
+            }
+        }
+    }
     private val databaseCursor = MutableLiveData<Cursor>()
     val cursor: LiveData<Cursor>
         get() = databaseCursor
@@ -44,6 +88,17 @@ class DurationsViewModel (application: Application): AndroidViewModel(applicatio
     get() = _displayWeek
 
     init {
+        Log.d(TAG, "DurationsViewModel: created. First day of week is $firstDayOfWeek")
+        calendar.firstDayOfWeek = firstDayOfWeek
+
+        application.contentResolver.registerContentObserver(TimingsContract.CONTENT_URI, true, contentObserver)
+
+        val broadcastFilter = IntentFilter(Intent.ACTION_TIMEZONE_CHANGED)
+        broadcastFilter.addAction(Intent.ACTION_LOCALE_CHANGED)
+        application.registerReceiver(broadcastReceiver, broadcastFilter)
+
+        settings.registerOnSharedPreferenceChangeListener(settingsListener)
+
         applyFilter()
     }
 
@@ -137,5 +192,32 @@ class DurationsViewModel (application: Application): AndroidViewModel(applicatio
                     order)
             databaseCursor.postValue(cursor)
         }
+    }
+
+    fun deleteRecords(timeInMillisecnds: Long) {
+        // clear all records from Timings table prior to the date selected.
+        Log.d(TAG, "Entering deleteRecords")
+
+        val longDate = timeInMillisecnds / 1000 // we need time in seconds not millis.
+        val selectionArgs = arrayOf(longDate.toString())
+        val selection = "${TimingsContract.Columns.TIMING_START_TIME} < ?"
+
+        Log.d(TAG, "Deleting records prior to $longDate")
+
+        GlobalScope.launch {
+            getApplication<Application>().contentResolver.delete(TimingsContract.CONTENT_URI, selection, selectionArgs)
+        }
+
+        Log.d(TAG, "Exiting deleteRecords")
+    }
+
+    override fun onCleared() {
+        Log.d(TAG, "onCleared: called")
+        getApplication<Application>().contentResolver.unregisterContentObserver(contentObserver)
+        getApplication<Application>().unregisterReceiver(broadcastReceiver)
+
+        settings.unregisterOnSharedPreferenceChangeListener(settingsListener)
+
+        databaseCursor.value?.close()
     }
 }
